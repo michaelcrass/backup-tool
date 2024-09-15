@@ -12,7 +12,11 @@ class Programm:
     def __init__(self):
         # read config
         config = configparser.ConfigParser()
-        config.read('config.ini')
+        try:
+            config.read('config.ini')
+        except ValueError as e:
+            print(f"Fehler: {e}")
+            input("..")
 
         # Configure logging
         self._logger = logging.getLogger(__name__)

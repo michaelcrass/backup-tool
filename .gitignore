@@ -1,4 +1,4 @@
-#/alte_Versionen
 /dist
 /build
 *.log
+*.spec
