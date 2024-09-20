@@ -143,10 +143,6 @@ class Programm:
                     self._logger.error("Kopieren fehlgeschlagen")
                     self.fehler +=1
 
-        # delete folders, keep the five latest backup folders
-        # 2024-03-24
-
-        #sleep(2)
         subfolders = self.get_subfolders(self.zielpfadparent)
         self._logger.info(f"Subfolders: {subfolders}")
         folders_to_keep = self.filter_folders_to_keep(subfolders)
