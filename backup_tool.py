@@ -4,7 +4,7 @@ import datetime
 import shutil
 import configparser
 import logging
-from datetime import date
+from datetime import date,datetime 
 import pathlib
 import sys
 
@@ -32,7 +32,8 @@ class Programm:
         # Verzeichnisse
         self.quellpfad=config['backup']['quellpfad']
         self.zielpfad =config['backup']['zielpfad']
-        self.zielpfad =f"{self.zielpfad}{date.today()}\\"
+        self.zielpfadparent =config['backup']['zielpfad']
+        self.zielpfad =f"{self.zielpfadparent}{date.today()}\\"
         
         # self.save_filetype =config['backup']['save_filetype']
         self._logger.info("read list of file typs to save")
@@ -55,6 +56,7 @@ class Programm:
         try:
             return datetime.strptime(folder_name, '%Y-%m-%d')
         except ValueError as e:
+            self.fehler += 1
             self._logger.warning(f"Fehler: {e}")
             return None
 
@@ -145,7 +147,8 @@ class Programm:
         # 2024-03-24
 
         #sleep(2)
-        subfolders = self.get_subfolders(self.zielpfad)
+        subfolders = self.get_subfolders(self.zielpfadparent)
+        self._logger.info(f"Subfolders: {subfolders}")
         folders_to_keep = self.filter_folders_to_keep(subfolders)
         self._logger.info(f"Folders to keep: {folders_to_keep}")
         total_deleted_size = self.delete_folders(subfolders, folders_to_keep)
