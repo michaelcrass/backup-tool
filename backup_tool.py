@@ -199,6 +199,7 @@ class Programm:
         if self.fehler==0:
             print("ok")
         else:
+            print("Fehler: {self.fehler}")
             input("")
 
 
