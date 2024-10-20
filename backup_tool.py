@@ -7,6 +7,7 @@ import logging
 from datetime import date,datetime 
 import pathlib
 import sys
+import zipfile
 
 class Programm:
     def __init__(self):
@@ -32,6 +33,7 @@ class Programm:
         # Verzeichnisse
         self.quellpfad=config['backup']['quellpfad']
         self.zielpfad =config['backup']['zielpfad']
+        self.ziponly =config['backup']['ziponly']
         self.zielpfadparent =config['backup']['zielpfad']
         self.zielpfad =f"{self.zielpfadparent}{date.today()}\\"
         
@@ -41,9 +43,12 @@ class Programm:
         items = config['backup']['save_filetype'].split(sep=",")
         for x in items:
             self.save_filetype_list.append(x)
-            self._logger.info(f"Dateityp: {x}")       
+            self._logger.info(f"Dateityp: {x}")      
+
+        self.zipname = f"backup_{date.today()}.zip" 
 
         self.fehler=0
+        self.filelist = []
 
         self.start()
         
@@ -105,17 +110,54 @@ class Programm:
         for x in self.get_files_in_folder():
             # Dateiendung, aber ohne Punkt
             # if pathlib.Path(x).suffix[1:] == f".{dateiendung}":
+            if x[0] == "~":
+                self._logger.info("Temporary file skipped")
+                continue
             if pathlib.Path(x).suffix[1:] in self.save_filetype_list:
                 y.append(x)           
         return y
     
+    def create_zip(self,files, zip_name, compress=True):
+        """Create a zip file with options to compress and encrypt."""
+    
+        compression = zipfile.ZIP_DEFLATED if compress else zipfile.ZIP_STORED
+
+        with zipfile.ZipFile(os.path.join(self.quellpfad,zip_name), 'w', compression=compression) as zipf:
+        # with zipfile.ZipFile(zip_name, 'w', compression=compression) as zipf:
+            for file in files:
+                zipf.write(os.path.join(self.quellpfad, file), os.path.basename(file))
+                # zipf.write(file, os.path.basename(file))
+
+        self._logger.info(f'ZIP file created: {zip_name}')    
+    
+
+    def delete_file_if_exists(self,filepath):
+        try:
+            if os.path.exists(filepath):
+                os.remove(filepath)
+                self._logger.info(f"File '{filepath}' has been deleted.")
+            else:
+                self._logger.info(f"File '{filepath}' does not exist.")
+        except Exception as e:
+            self._logger.warning(f"An error occurred: {e}")
+
     def start(self):
         self._logger.info(f"Quellpfad: {self.quellpfad}")
         self._logger.info(f"Zielpfad: {self.zielpfad}")
 
         if not os.path.exists(self.zielpfad):os.makedirs(self.zielpfad)
 
-        for file_name in self.get_xfiles_in_folder():
+
+        
+
+        if self.ziponly.lower() == "true":
+            self.create_zip(self.get_xfiles_in_folder(),self.zipname)
+            self.filelist = [self.zipname]
+        else:
+            self.filelist = self.get_xfiles_in_folder()
+
+        
+        for file_name in self.filelist:
             self._logger.info("Zu sichernde Datei: " + file_name)
         
             source = self.quellpfad + file_name
@@ -150,6 +192,7 @@ class Programm:
         total_deleted_size = self.delete_folders(subfolders, folders_to_keep)
         self._logger.info(f"Total size of deleted folders: {total_deleted_size / (1024 * 1024):.2f} MB")
 
+        self.delete_file_if_exists(os.path.join(self.quellpfad,self.zipname))
         
         self._logger.info(f"Fehler: {self.fehler}")
         
