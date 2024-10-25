@@ -47,8 +47,8 @@ class Programm:
 
         self.zipname = f"backup_{date.today()}.zip" 
 
-        self.fehler=0
-        self.fehlertext=""
+        self.error_count=0
+        self.error_msg=""
         self.filelist = []
 
         self.start()
@@ -62,8 +62,12 @@ class Programm:
         try:
             return datetime.strptime(folder_name, '%Y-%m-%d')
         except ValueError as e:
-            self.fehler += 1
+            self.error_count += 1
             self._logger.warning(f"Fehler: {e}")
+            method_name = sys._getframe(1).f_code.co_name
+            self.error_msg += f"Fehler ({method_name})"
+            self.error_msg += f": Fehler: {e}\n"
+
             return None
 
     def filter_folders_to_keep(self,subfolders):
@@ -179,14 +183,15 @@ class Programm:
                     if statinfo2.st_size == statinfo.st_size:
                         self._logger.info("erfolgreich: " + destination)
                     else:
-                        self.fehler +=1
+                        self.error_count +=1
                         self._logger.error("Fehler beim Kopieren: " + destination)
                         self._logger.error("Dateigröße stimmt nicht")
-                        self.fehlertext += "Kopieren fehlgeschlagen. Dateigröße stimmt nicht: " + destination + "\n"
+                        self.error_msg += f"Kopieren fehlgeschlagen. Dateigröße stimmt nicht: {destination}\n"
+                        self.error_msg += f"Original: {statinfo.st_size} != Kopie: {statinfo2.st_size}\n"
                 else:
                     self._logger.error("Kopieren fehlgeschlagen")
-                    self.fehler +=1
-                    self.fehlertext += "Kopieren fehlgeschlagen: " + destination + "\n"
+                    self.error_count +=1
+                    self.error_msg += "Kopieren fehlgeschlagen: " + destination + "\n"
 
         subfolders = self.get_subfolders(self.target_pathparent)
         self._logger.info(f"Subfolders: {subfolders}")
@@ -197,12 +202,14 @@ class Programm:
 
         self.delete_file_if_exists(os.path.join(self.source_path,self.zipname))
         
-        self._logger.info(f"Fehler: {self.fehler}")
+        self._logger.info(f"Errors: {self.error_count}")
         
-        if self.fehler==0:
+        if self.error_count==0:
             print("ok")
         else:
-            print(f"Fehler: {self.fehler}")
+            self._logger.info(f"Errors: {self.error_msg}")
+            print(f"Errors: {self.error_count}")
+            print(f"{self.error_msg}")
             input("")
 
 
