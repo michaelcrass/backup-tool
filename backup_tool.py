@@ -30,7 +30,7 @@ class Programm:
         self._logger.info(f"Python-Script: {__file__}]")
         self._logger.info(f"User: {os.getenv('USERNAME')}@{os.getenv('COMPUTERNAME')}")
 
-        # Verzeichnisse
+        # paths
         self.source_path=config['backup']['source_path']
         self.target_path =config['backup']['target_path']
         self.zip_only =config['backup']['zip_only']
@@ -199,7 +199,7 @@ class Programm:
         if self.fehler==0:
             print("ok")
         else:
-            print("Fehler: {self.fehler}")
+            print(f"Fehler: {self.fehler}")
             input("")
 
 
