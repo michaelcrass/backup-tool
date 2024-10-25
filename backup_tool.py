@@ -21,8 +21,8 @@ class Programm:
 
         # Configure logging
         self._logger = logging.getLogger(__name__)
-        log_format = config.get('logging', 'log_format', raw=True)
-        logging.basicConfig(filename=config['logging']['log_file'], level=config['logging']['log_level'],format=log_format)
+        logging_format = config.get('logging', 'logging_format', raw=True)
+        logging.basicConfig(filename=config['logging']['log_file'], level=config['logging']['logging_level'],format=logging_format)
 
         #logging
         pythonversion = "{0}.{1}.{2}".format(sys.version_info.major,sys.version_info.minor,sys.version_info.micro)
@@ -31,11 +31,11 @@ class Programm:
         self._logger.info(f"User: {os.getenv('USERNAME')}@{os.getenv('COMPUTERNAME')}")
 
         # Verzeichnisse
-        self.quellpfad=config['backup']['quellpfad']
-        self.zielpfad =config['backup']['zielpfad']
-        self.ziponly =config['backup']['ziponly']
-        self.zielpfadparent =config['backup']['zielpfad']
-        self.zielpfad =f"{self.zielpfadparent}{date.today()}\\"
+        self.source_path=config['backup']['source_path']
+        self.target_path =config['backup']['target_path']
+        self.zip_only =config['backup']['zip_only']
+        self.target_pathparent =config['backup']['target_path']
+        self.target_path =f"{self.target_pathparent}{date.today()}\\"
         
         # self.save_filetype =config['backup']['save_filetype']
         self._logger.info("read list of file typs to save")
@@ -98,7 +98,7 @@ class Programm:
 
     def get_files_in_folder(self):
         dir_path = os.path.dirname(__file__)
-        dir_path = os.path.dirname(self.quellpfad)
+        dir_path = os.path.dirname(self.source_path)
         res = []
         for file_path in os.listdir(dir_path):
             if os.path.isfile(os.path.join(dir_path, file_path)):
@@ -122,10 +122,10 @@ class Programm:
     
         compression = zipfile.ZIP_DEFLATED if compress else zipfile.ZIP_STORED
 
-        with zipfile.ZipFile(os.path.join(self.quellpfad,zip_name), 'w', compression=compression) as zipf:
+        with zipfile.ZipFile(os.path.join(self.source_path,zip_name), 'w', compression=compression) as zipf:
         # with zipfile.ZipFile(zip_name, 'w', compression=compression) as zipf:
             for file in files:
-                zipf.write(os.path.join(self.quellpfad, file), os.path.basename(file))
+                zipf.write(os.path.join(self.source_path, file), os.path.basename(file))
                 # zipf.write(file, os.path.basename(file))
 
         self._logger.info(f'ZIP file created: {zip_name}')    
@@ -142,15 +142,15 @@ class Programm:
             self._logger.warning(f"An error occurred: {e}")
 
     def start(self):
-        self._logger.info(f"Quellpfad: {self.quellpfad}")
-        self._logger.info(f"Zielpfad: {self.zielpfad}")
+        self._logger.info(f"source_path: {self.source_path}")
+        self._logger.info(f"target_path: {self.target_path}")
 
-        if not os.path.exists(self.zielpfad):os.makedirs(self.zielpfad)
+        if not os.path.exists(self.target_path):os.makedirs(self.target_path)
 
 
         
 
-        if self.ziponly.lower() == "true":
+        if self.zip_only.lower() == "true":
             self.create_zip(self.get_xfiles_in_folder(),self.zipname)
             self.filelist = [self.zipname]
         else:
@@ -160,8 +160,8 @@ class Programm:
         for file_name in self.filelist:
             self._logger.info("Zu sichernde Datei: " + file_name)
         
-            source = self.quellpfad + file_name
-            destination = self.zielpfad + file_name
+            source = self.source_path + file_name
+            destination = self.target_path + file_name
             statinfo = os.stat(source)
 
             # copy only files
@@ -185,14 +185,14 @@ class Programm:
                     self._logger.error("Kopieren fehlgeschlagen")
                     self.fehler +=1
 
-        subfolders = self.get_subfolders(self.zielpfadparent)
+        subfolders = self.get_subfolders(self.target_pathparent)
         self._logger.info(f"Subfolders: {subfolders}")
         folders_to_keep = self.filter_folders_to_keep(subfolders)
         self._logger.info(f"Folders to keep: {folders_to_keep}")
         total_deleted_size = self.delete_folders(subfolders, folders_to_keep)
         self._logger.info(f"Total size of deleted folders: {total_deleted_size / (1024 * 1024):.2f} MB")
 
-        self.delete_file_if_exists(os.path.join(self.quellpfad,self.zipname))
+        self.delete_file_if_exists(os.path.join(self.source_path,self.zipname))
         
         self._logger.info(f"Fehler: {self.fehler}")
         
