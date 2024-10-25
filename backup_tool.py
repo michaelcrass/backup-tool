@@ -48,6 +48,7 @@ class Programm:
         self.zipname = f"backup_{date.today()}.zip" 
 
         self.fehler=0
+        self.fehlertext=""
         self.filelist = []
 
         self.start()
@@ -181,9 +182,11 @@ class Programm:
                         self.fehler +=1
                         self._logger.error("Fehler beim Kopieren: " + destination)
                         self._logger.error("Dateigröße stimmt nicht")
+                        self.fehlertext += "Kopieren fehlgeschlagen. Dateigröße stimmt nicht: " + destination + "\n"
                 else:
                     self._logger.error("Kopieren fehlgeschlagen")
                     self.fehler +=1
+                    self.fehlertext += "Kopieren fehlgeschlagen: " + destination + "\n"
 
         subfolders = self.get_subfolders(self.target_pathparent)
         self._logger.info(f"Subfolders: {subfolders}")
