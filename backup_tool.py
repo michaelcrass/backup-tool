@@ -209,8 +209,9 @@ class Programm:
         else:
             self._logger.info(f"Errors: {self.error_msg}")
             print(f"Errors: {self.error_count}")
+            self._logger.info(f"{self.error_msg}")
             print(f"{self.error_msg}")
-            input("")
+            
 
 
 if __name__ == '__main__':
