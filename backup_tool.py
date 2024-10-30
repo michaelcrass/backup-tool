@@ -169,7 +169,7 @@ class Programm:
             destination = self.target_path + file_name
             statinfo = os.stat(source)
 
-            # copy only files
+            # skip temp files
             if file_name[0] == "~":
                 self._logger.info("Temporary file skipped")
                 continue
@@ -202,14 +202,14 @@ class Programm:
 
         self.delete_file_if_exists(os.path.join(self.source_path,self.zipname))
         
-        self._logger.info(f"Errors: {self.error_count}")
+        self._logger.error(f"Errors: {self.error_count}")
         
         if self.error_count==0:
             print("ok")
         else:
-            self._logger.info(f"Errors: {self.error_msg}")
+            self._logger.error(f"Errors: {self.error_msg}")
             print(f"Errors: {self.error_count}")
-            self._logger.info(f"{self.error_msg}")
+            self._logger.error(f"{self.error_msg}")
             print(f"{self.error_msg}")
             
 
